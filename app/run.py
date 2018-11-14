@@ -10,41 +10,14 @@ from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
+from models.train_classifier import tokenize
+
 
 
 app = Flask(__name__)
 
 class NumUpperExtractor(object):
     pass
-
-def tokenize(text):
-    '''
-    INPUT:
-        TEXT (string) : text to tokenize/lemmatize
-    OUTPUT:
-        CLEAN_WORDS (list) : list of tokenized/cleaned words
-    '''
-
-    detected_urls = re.findall(url_regex, text)  # find urls
-    for url in detected_urls:
-        text = text.replace(url, 'urlplaceholder')  # replace urls
-
-    tokens = word_tokenize(
-        text)  # tokenizer object, not capitalised as it is a class method
-
-    words = [word for word in tokens if word not in stopwords.words('english')]
-
-    lemmatizer = WordNetLemmatizer()  # parent class lemmatizer object
-
-    clean_words = []  # empty list for results
-
-    for word in words:
-        clean_word = lemmatizer.lemmatize(
-            word).lower().strip()  # return lemmatized words
-
-        clean_words.append(clean_word)  # append cleaned/lemmatized string
-
-    return clean_words
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
