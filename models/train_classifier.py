@@ -18,10 +18,17 @@ from sqlalchemy import create_engine
 import warnings
 from contextlib import redirect_stdout
 
+
+def fxn():
+    warnings.warn("deprecated", DeprecationWarning)
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=DeprecationWarning)
+
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+
+    fxn()
 
 
 with redirect_stdout(open(os.devnull, "w")):
