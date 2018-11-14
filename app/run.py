@@ -1,6 +1,7 @@
 import json
 import plotly
 import pandas as pd
+import re
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
@@ -10,14 +11,52 @@ from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
-from models.train_classifier import tokenize
+from sklearn.base import BaseEstimator, TransformerMixin
 
 
 
 app = Flask(__name__)
 
-class NumUpperExtractor(object):
-    pass
+class NumUpperExtractor(BaseEstimator, TransformerMixin):
+    # extractor/transformer to find all uppercase words
+    def transform(self, X, y=None):
+        X_transformed = pd.Series(X).apply(
+            lambda x: len([x for x in x.split() if x.isupper()]))
+        return pd.DataFrame(X_transformed)
+
+    def fit(self, X, y=None):
+        return self
+
+url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
+def tokenize(text):
+    '''
+    INPUT:
+        TEXT (string) : text to tokenize/lemmatize
+    OUTPUT:
+        CLEAN_WORDS (list) : list of tokenized/cleaned words
+    '''
+
+    detected_urls = re.findall(url_regex, text)  # find urls
+    for url in detected_urls:
+        text = text.replace(url, 'urlplaceholder')  # replace urls
+
+    tokens = word_tokenize(
+        text)  # tokenizer object, not capitalised as it is a class method
+
+    words = [word for word in tokens if word not in stopwords.words('english')]
+
+    lemmatizer = WordNetLemmatizer()  # parent class lemmatizer object
+
+    clean_words = []  # empty list for results
+
+    for word in words:
+        clean_word = lemmatizer.lemmatize(
+            word).lower().strip()  # return lemmatized words
+
+        clean_words.append(clean_word)  # append cleaned/lemmatized string
+
+    return clean_words
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
@@ -87,7 +126,7 @@ def go():
 
 
 def main():
-    app.run(host='0.0.0.0', port=3001, debug=True)
+    app.run(host='127.0.0.1', port=8000, debug=True)
 
 
 if __name__ == '__main__':
