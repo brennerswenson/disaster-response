@@ -4,7 +4,7 @@ import pandas as pd
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
-
+from nltk.corpus import stopwords
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
@@ -14,23 +14,44 @@ from sqlalchemy import create_engine
 
 app = Flask(__name__)
 
+class NumUpperExtractor(object):
+    pass
+
 def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
+    '''
+    INPUT:
+        TEXT (string) : text to tokenize/lemmatize
+    OUTPUT:
+        CLEAN_WORDS (list) : list of tokenized/cleaned words
+    '''
 
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+    detected_urls = re.findall(url_regex, text)  # find urls
+    for url in detected_urls:
+        text = text.replace(url, 'urlplaceholder')  # replace urls
 
-    return clean_tokens
+    tokens = word_tokenize(
+        text)  # tokenizer object, not capitalised as it is a class method
+
+    words = [word for word in tokens if word not in stopwords.words('english')]
+
+    lemmatizer = WordNetLemmatizer()  # parent class lemmatizer object
+
+    clean_words = []  # empty list for results
+
+    for word in words:
+        clean_word = lemmatizer.lemmatize(
+            word).lower().strip()  # return lemmatized words
+
+        clean_words.append(clean_word)  # append cleaned/lemmatized string
+
+    return clean_words
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('disaster_data', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
