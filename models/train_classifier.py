@@ -10,8 +10,6 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.multioutput import MultiOutputClassifier
@@ -20,8 +18,10 @@ from sqlalchemy import create_engine
 import warnings
 from contextlib import redirect_stdout
 
-
-
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=DeprecationWarning)
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 
 with redirect_stdout(open(os.devnull, "w")):
@@ -38,14 +38,14 @@ url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-
 
 
 def load_data(database_filepath):
-    '''
+    """
     INPUT:
         database_filepath (string) : database location
     OUTPUT:
         X (np.array) : messages to process
         y (np.array) : training/evaluating categories
         labels (np.array) : list of message classification labels
-    '''
+    """
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql_table('disaster_data', engine)
     X = df.message.values
