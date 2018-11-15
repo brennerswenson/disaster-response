@@ -12,10 +12,10 @@ from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 from sklearn.base import BaseEstimator, TransformerMixin
-
-
+import numpy as np
 
 app = Flask(__name__)
+
 
 class NumUpperExtractor(BaseEstimator, TransformerMixin):
     # extractor/transformer to find all uppercase words
@@ -27,7 +27,9 @@ class NumUpperExtractor(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
+
 url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
 
 def tokenize(text):
     '''
@@ -58,6 +60,7 @@ def tokenize(text):
 
     return clean_words
 
+
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('disaster_data', engine)
@@ -70,14 +73,14 @@ model = joblib.load("../models/classifier.pkl")
 @app.route('/')
 @app.route('/index')
 def index():
-    
-    # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    
+
+    ### data for visualizing category counts.
+    label_sums = df.iloc[:, 4:].sum()
+    label_names = list(label_sums.index)
+
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
@@ -96,13 +99,33 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        {
+            'data': [
+                Bar(
+                    x=label_names,
+                    y=label_sums,
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of labels/categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+
+                },
+            }
         }
+
     ]
-    
+
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
+
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-    
+
     # render web page with plotly graphs
     return render_template('master.html', ids=ids, graphJSON=graphJSON)
 
@@ -111,7 +134,7 @@ def index():
 @app.route('/go')
 def go():
     # save user input in query
-    query = request.args.get('query', '') 
+    query = request.args.get('query', '')
 
     # use model to predict classification for query
     classification_labels = model.predict([query])[0]
