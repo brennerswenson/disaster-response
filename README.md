@@ -1,4 +1,4 @@
-# Disaster Response Pipeline Project
+# Disaster Response Pipeline
 
 #### A project from my Udacity Data Science Nanodegree. A machine learning pipeline implemented through a web app that classifies tweets to assist with disaster emergency response
 
