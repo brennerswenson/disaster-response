@@ -12,7 +12,9 @@ from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 from sklearn.base import BaseEstimator, TransformerMixin
+from contextlib import redirect_stdout
 import nltk
+import os
 
 app = Flask(__name__)
 
