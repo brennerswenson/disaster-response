@@ -12,6 +12,7 @@ from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 from sklearn.base import BaseEstimator, TransformerMixin
+import nltk
 
 app = Flask(__name__)
 
@@ -59,6 +60,11 @@ def tokenize(text):
 
     return clean_words
 
+
+with redirect_stdout(open(os.devnull, "w")):
+    nltk.download('punkt')
+    nltk.download('wordnet')
+    nltk.download('stopwords')
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
