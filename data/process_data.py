@@ -32,7 +32,6 @@ def load_data(messages_filepath, categories_filepath):
     categories.columns = category_colnames
 
     for column in categories:
-
         # set each value to be the last character of the string
         categories[column] = categories[column].str.slice(-1)
 

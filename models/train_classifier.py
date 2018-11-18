@@ -17,10 +17,12 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from sqlalchemy import create_engine
 import warnings
 from contextlib import redirect_stdout
+from sklearn.externals import joblib
 
 
 def fxn():
     warnings.warn("deprecated", DeprecationWarning)
+
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=DeprecationWarning)
@@ -30,7 +32,6 @@ with warnings.catch_warnings():
 
     fxn()
 
-
 with redirect_stdout(open(os.devnull, "w")):
     nltk.set_proxy(os.environ['proxy'])
     nltk.download('punkt')
@@ -38,8 +39,6 @@ with redirect_stdout(open(os.devnull, "w")):
     nltk.download('stopwords')
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
-
-
 
 url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
@@ -53,7 +52,7 @@ def load_data(database_filepath):
         y (np.array) : training/evaluating categories
         labels (np.array) : list of message classification labels
     """
-    engine = create_engine('sqlite:///'+database_filepath)
+    engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql_table('disaster_data', engine)
     X = df.message.values
     y = df.drop(['id', 'message', 'genre'], axis=1).values
@@ -114,17 +113,16 @@ def build_model():
             ('num_upper', NumUpperExtractor())
         ])),
 
-            ('clf', MultiOutputClassifier(RandomForestClassifier()))
-        ])
+         ('clf', MultiOutputClassifier(RandomForestClassifier()))
+         ])
 
-    parameters = {'clf__estimator__n_estimators': [200, 300],
-                  'clf__estimator__min_samples_split': [2, 3]}
-    cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=-1, cv=3)
+    parameters = {'clf__estimator__min_samples_split': [2, 3]}
+    cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=4)
 
     return cv
 
 
-def evaluate_model(model, X_test, Y_test, labels):
+def evaluate_model(model, X_test, y_test, labels):
     """
     Evaluates a pre-trained classifier
     Returns accuracy, recall, and precision for each unique label
@@ -139,7 +137,7 @@ def save_model(model, model_filepath):
     """
     Save model to a pickle file
     """
-    pickle.dump(model, open(model_filepath, 'wb'))
+    joblib.dump(model, open(model_filepath, 'wb'))
 
 
 def main():
