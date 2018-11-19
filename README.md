@@ -18,7 +18,7 @@
 
 ### Files of importance:
 
-   * `app/templates/* templates/html` files for web app
+   * `app/templates/*` templates/html files for web app
    * `data/process_data.py`Extract Train Load (ETL) pipeline used for data cleaning, feature extraction, and storing
    data in a SQLite database
    * `models/train_classifier.py` A machine learning pipeline that loads data, trains a model, and saves the trained
